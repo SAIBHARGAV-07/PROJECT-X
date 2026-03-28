@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🚀 StarBlaster — 2D Space Shooter</title>
+  <meta name="description" content="StarBlaster – a premium browser-based 2D space shooter with neon visuals, power-ups, and infinite levels.">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══ MENU SCREEN ═══ -->
+  <div id="menuScreen" class="screen active">
+    <div class="menu-content">
+
+      <div class="logo-wrap">
+        <div class="logo-title">⭐ STARBLASTER</div>
+        <div class="logo-sub">2D SPACE SHOOTER</div>
+      </div>
+
+      <div class="logo-divider"></div>
+
+      <div class="high-score-display">🏆 BEST: <span id="menuHighScore">0</span></div>
+      
+      <!-- ── PILOT RECORD ── -->
+      <div class="pilot-record">
+        <div class="pilot-header">PILOT RECORD</div>
+        <div class="pilot-stats-grid">
+          <div class="pilot-stat">
+            <span class="stat-icon">🛸</span>
+            <span class="stat-label">KILLS</span>
+            <span class="stat-value" id="statKills">0</span>
+          </div>
+          <div class="pilot-stat">
+            <span class="stat-icon">👑</span>
+            <span class="stat-label">BOSSES</span>
+            <span class="stat-value" id="statBosses">0</span>
+          </div>
+          <div class="pilot-stat">
+            <span class="stat-icon">⚙️</span>
+            <span class="stat-label">UPGRADES</span>
+            <span class="stat-value" id="statUpgrades">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── THE HANGAR ── -->
+      <div class="hangar-section">
+        <div class="hangar-label">SELECT SHIP</div>
+        <div class="hangar-container" id="hangarContainer">
+          <div class="ship-card" data-ship="interceptor">
+            <div class="ship-icon" style="color:#ff00ff">⚡</div>
+            <div class="ship-name">INTERCEPTOR</div>
+            <div class="ship-stats">
+              <span>⚡ 8</span>
+              <span>❤️ 2</span>
+            </div>
+          </div>
+          <div class="ship-card active" data-ship="classic">
+            <div class="ship-icon" style="color:#00e5ff">🚀</div>
+            <div class="ship-name">CLASSIC</div>
+            <div class="ship-stats">
+              <span>⚡ 5</span>
+              <span>❤️ 3</span>
+            </div>
+          </div>
+          <div class="ship-card" data-ship="juggernaut">
+            <div class="ship-icon" style="color:#ff9f43">🛡️</div>
+            <div class="ship-name">JUGGERNAUT</div>
+            <div class="ship-stats">
+              <span>⚡ 3</span>
+              <span>❤️ 5</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ── SKIN SELECTOR ── -->
+      <div class="skin-section" id="skinSection" style="display:none">
+        <div class="hangar-label">SHIP SKIN</div>
+        <div class="skin-container" id="skinContainer">
+          <!-- Populated by game.js -->
+        </div>
+      </div>
+      
+      <!-- ── SHIP LAB ── -->
+      <div class="lab-section">
+        <div class="hangar-label">🛠️ SHIP LAB (UPGRADES)</div>
+        <div class="upgrade-grid" id="upgradeShop">
+          <!-- Dynamically populated by game.js -->
+        </div>
+      </div>
+
+      <!-- ── ACHIEVEMENT PREVIEW ── -->
+      <div class="achievement-preview" id="achievementPreview">
+        <div class="preview-header">
+          <span>NEXT RANK PROGRESS</span>
+          <span id="previewPercent">0%</span>
+        </div>
+        <div class="preview-bar-bg">
+          <div class="preview-bar-fill" id="previewBarFill"></div>
+        </div>
+        <div class="preview-hint" id="previewHint">Kill 100 more aliens to unlock 'Elite' rank.</div>
+      </div>
+
+
+      <div class="menu-actions">
+        <button class="btn-play" id="btnPlay">▶ PLAY</button>
+        <button class="btn-secondary" id="btnAchievements">🏆 MEDALS</button>
+        <button class="btn-secondary" id="btnGuide">📖 GUIDE</button>
+      </div>
+      <button class="btn-music" id="btnMusicToggle" title="Toggle Music">🔊 MUSIC: ON</button>
+
+      <div class="save-actions">
+        <button class="btn-text" id="btnExport">💾 EXPORT SAVE</button>
+        <button class="btn-text" id="btnImport">📥 IMPORT SAVE</button>
+      </div>
+
+      <!-- Controls Scheme Selector -->
+      <div class="controls-selector">
+        <div class="controls-selector-label">CONTROLS</div>
+        <div class="controls-toggle" id="controlsToggle">
+          <button class="ctrl-btn" id="ctrlArrows" data-scheme="arrows">⬆ ARROWS</button>
+          <button class="ctrl-btn" id="ctrlWASD"   data-scheme="wasd">W A S D</button>
+          <button class="ctrl-btn" id="ctrlBoth"   data-scheme="both">BOTH</button>
+        </div>
+      </div>
+
+      <div class="controls-hint" id="controlsHint">
+        <span>← → ↑ ↓ MOVE</span>
+        <span>SPACE SHOOT</span>
+        <span>P PAUSE</span>
+      </div>
+
+    </div>
+    <canvas id="bgCanvas"></canvas>
+  </div>
+
+  <!-- ═══ GAME SCREEN ═══ -->
+  <div id="gameScreen" class="screen">
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hud-left">
+        <span class="hud-label">SCORE</span>
+        <span class="hud-value" id="scoreDisplay">0</span>
+        <span class="hud-combo" id="comboMultiplierText" style="display:none; color: #ffd700; margin-left: 10px; font-weight: bold; text-shadow: 0 0 10px #ff9f43;"></span>
+      </div>
+      <div class="hud-center">
+        <span class="hud-label">LEVEL</span>
+        <span class="hud-value" id="levelDisplay">1</span>
+      </div>
+      <div class="hud-right">
+        <span class="hud-label">BEST</span>
+        <span class="hud-value" id="highScoreDisplay">0</span>
+      </div>
+    </div>
+    <div id="livesBar"></div>
+
+    <!-- EMP ENERGY BAR -->
+    <div id="energyContainer" class="energy-container">
+      <div class="energy-label">EMP (SHIFT)</div>
+      <div class="energy-bar-bg">
+        <div id="energyBarFill" class="energy-bar-fill"></div>
+      </div>
+    </div>
+    <!-- BERSERKER GAUGE -->
+    <div id="berserkerContainer" class="energy-container" style="bottom: 75px;">
+      <div class="energy-label" style="color: #ff3e5e;">BERSERKER (R)</div>
+      <div class="energy-bar-bg" style="border-color: rgba(255, 62, 94, 0.3); background: rgba(255, 62, 94, 0.1);">
+        <div id="berserkerBarFill" class="energy-bar-fill berserker"></div>
+      </div>
+    </div>
+    <!-- FLOATING TEXT CONTAINER -->
+    <div id="activeCombos"></div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="pauseOverlay" class="overlay hidden">
+      <div class="overlay-box">
+        <div class="overlay-title">⏸ PAUSED</div>
+        <button class="btn-small" id="btnResume">▶ RESUME</button>
+        <button class="btn-small" id="btnQuit">✖ QUIT TO MENU</button>
+      </div>
+    </div>
+
+    <!-- ═══ MOBILE TOUCH CONTROLS ═══ -->
+    <div id="mobileControls">
+      <!-- Left Side: D-Pad -->
+      <div class="dpad" id="dpad">
+        <button class="dpad-btn dpad-up"    id="dUp">▲</button>
+        <div class="dpad-row">
+          <button class="dpad-btn dpad-left"  id="dLeft">◀</button>
+          <div class="dpad-center"></div>
+          <button class="dpad-btn dpad-right" id="dRight">▶</button>
+        </div>
+        <button class="dpad-btn dpad-down"  id="dDown">▼</button>
+      </div>
+
+      <!-- Right Side: Action Buttons -->
+      <div class="action-btns">
+        <div class="action-row-top">
+          <button class="action-btn emp-btn"       id="btnEMP"      >⚡ EMP</button>
+          <button class="action-btn berserker-btn" id="btnBerserker">🔥 RAGE</button>
+        </div>
+        <button class="action-btn shoot-btn" id="btnShoot">🔴 FIRE</button>
+      </div>
+
+      <!-- Mobile Pause -->
+      <button class="mobile-pause-btn" id="btnMobilePause">⏸</button>
+    </div>
+
+  </div>
+
+  <!-- ═══ GAME OVER SCREEN ═══ -->
+  <div id="gameOverScreen" class="screen">
+    <div class="go-content">
+      <div class="go-title">💀 GAME OVER</div>
+      <div class="go-divider"></div>
+      <div class="go-stats-container">
+        <div class="go-stat-item">
+          <div class="go-stat-label">SCORE</div>
+          <div class="go-stat-value" id="finalScore">0</div>
+        </div>
+        <div class="go-stat-item">
+          <div class="go-stat-label">BEST</div>
+          <div class="go-stat-value" id="finalBest">0</div>
+        </div>
+      </div>
+      <div id="newBestBanner" style="display:none">🏆 NEW HIGH SCORE!</div>
+      <div class="go-buttons">
+        <button class="btn-play" id="btnRestart">↺ PLAY AGAIN</button>
+        <button class="btn-small" id="btnMenu">⌂ MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ACHIEVEMENTS MODAL ═══ -->
+  <div id="achievementsModal" class="overlay-modal hidden">
+    <div class="modal-body">
+      <button class="modal-close" id="closeAchievements">&times;</button>
+      <div class="modal-header">🎖️ PILOT ACHIEVEMENTS</div>
+      <div class="achievements-list" id="achievementsList">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ GAME GUIDE MODAL ═══ -->
+  <div id="guideModal" class="overlay-modal hidden">
+    <div class="guide-body">
+      <button class="modal-close" id="closeGuide">&times;</button>
+      <div class="modal-header">📖 MISSION BRIEFING</div>
+
+      <div class="guide-tabs">
+        <button class="guide-tab active" data-tab="ships">🚀 SHIPS</button>
+        <button class="guide-tab" data-tab="enemies">👾 ENEMIES</button>
+        <button class="guide-tab" data-tab="powerups">⚡ POWER-UPS</button>
+        <button class="guide-tab" data-tab="modes">🌌 SECTORS</button>
+      </div>
+
+      <div class="guide-panel active" id="tab-ships">
+        <div class="guide-card">
+          <canvas class="guide-ship-canvas" id="gShipInterceptor" width="80" height="80"></canvas>
+          <div class="guide-card-info">
+            <div class="guide-card-title" style="color:#ff00ff">INTERCEPTOR</div>
+            <div class="guide-card-desc">Blazing speed &amp; deadly firepower. Low HP but exceptional agility. Best for pilots who weave through bullets.</div>
+            <div class="guide-card-stats"><span class="stat-badge">⚡ SPD 8</span><span class="stat-badge">❤️ HP 2</span><span class="stat-badge">🔥 FAST</span></div>
+          </div>
+        </div>
+        <div class="guide-card">
+          <canvas class="guide-ship-canvas" id="gShipClassic" width="80" height="80"></canvas>
+          <div class="guide-card-info">
+            <div class="guide-card-title" style="color:#00e5ff">CLASSIC</div>
+            <div class="guide-card-desc">The balanced workhorse of the fleet. Moderate speed, reliable survivability, and a rapid fire rate for all playstyles.</div>
+            <div class="guide-card-stats"><span class="stat-badge">⚡ SPD 5</span><span class="stat-badge">❤️ HP 3</span><span class="stat-badge">⚖️ BALANCED</span></div>
+          </div>
+        </div>
+        <div class="guide-card">
+          <canvas class="guide-ship-canvas" id="gShipJuggernaut" width="80" height="80"></canvas>
+          <div class="guide-card-info">
+            <div class="guide-card-title" style="color:#ff9f43">JUGGERNAUT</div>
+            <div class="guide-card-desc">A walking fortress. Slow but carries 5 HP. Designed for tank-style pilots who absorb damage and return devastating fire.</div>
+            <div class="guide-card-stats"><span class="stat-badge">⚡ SPD 3</span><span class="stat-badge">❤️ HP 5</span><span class="stat-badge">🛡️ TANK</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-panel" id="tab-enemies">
+        <div class="guide-card"><div class="guide-enemy-icon" style="color:#ff4444">◆</div><div class="guide-card-info"><div class="guide-card-title" style="color:#ff4444">DIAMOND RAIDER</div><div class="guide-card-desc">Fast and fragile. Swoops in and fires infrequently. Take these out early.</div><div class="guide-card-stats"><span class="stat-badge">❤️ HP 1</span><span class="stat-badge enemy">💀 10 pts</span></div></div></div>
+        <div class="guide-card"><div class="guide-enemy-icon" style="color:#bf5fff">⬡</div><div class="guide-card-info"><div class="guide-card-title" style="color:#bf5fff">SAUCER SENTINEL</div><div class="guide-card-desc">Armored and a frequent shooter. Hovers mid-screen and fires plasma bolts. Requires 2 hits.</div><div class="guide-card-stats"><span class="stat-badge">❤️ HP 2</span><span class="stat-badge enemy">💀 25 pts</span></div></div></div>
+        <div class="guide-card"><div class="guide-enemy-icon" style="color:#ffd700;font-size:28px">⬡</div><div class="guide-card-info"><div class="guide-card-title" style="color:#ffd700">HEXAGON TYRANT</div><div class="guide-card-desc">Slow but heavily armored with a high fire rate. Requires 4 hits. Priority target.</div><div class="guide-card-stats"><span class="stat-badge">❤️ HP 4</span><span class="stat-badge enemy">💀 60 pts</span></div></div></div>
+        <div class="guide-card"><div class="guide-enemy-icon" style="color:#ff0044">▲</div><div class="guide-card-info"><div class="guide-card-title" style="color:#ff0044">KAMIKAZE</div><div class="guide-card-desc">A suicidal missile. No guns — just rams into you at extreme speed. Dodge immediately.</div><div class="guide-card-stats"><span class="stat-badge">❤️ HP 1</span><span class="stat-badge enemy">💀 40 pts</span></div></div></div>
+        <div class="guide-card"><div class="guide-enemy-icon" style="color:#00ffaa;font-size:18px;letter-spacing:3px">═══</div><div class="guide-card-info"><div class="guide-card-title" style="color:#00ffaa">SNIPER DRONE</div><div class="guide-card-desc">Wide and low, with a devastating long-range shot. Fires accurately — stay mobile.</div><div class="guide-card-stats"><span class="stat-badge">❤️ HP 2</span><span class="stat-badge enemy">💀 50 pts</span></div></div></div>
+        <div class="guide-card boss"><div class="guide-enemy-icon boss-icon">☢</div><div class="guide-card-info"><div class="guide-card-title" style="color:#ff2244">SECTOR BOSS</div><div class="guide-card-desc">Appears every 5 levels. Massive HP, multiple attack patterns. Defeat for a power-up shower.</div><div class="guide-card-stats"><span class="stat-badge">❤️ 150+</span><span class="stat-badge enemy">💀 1000+ pts</span></div></div></div>
+      </div>
+
+      <div class="guide-panel" id="tab-powerups">
+        <div class="powerup-grid">
+          <div class="powerup-card"><div class="powerup-icon" style="color:#ff9f43">🔥</div><div class="powerup-name">TRIPLE SHOT</div><div class="powerup-text">Fires 3 bullets at once for 7 seconds.</div></div>
+          <div class="powerup-card"><div class="powerup-icon" style="color:#ff4444">❤️</div><div class="powerup-name">EXTRA LIFE</div><div class="powerup-text">Grants +1 life (max 5).</div></div>
+          <div class="powerup-card"><div class="powerup-icon" style="color:#39ff14">⚡</div><div class="powerup-name">SPEED BOOST</div><div class="powerup-text">Doubles movement speed for 5 seconds.</div></div>
+          <div class="powerup-card"><div class="powerup-icon" style="color:#00e5ff">🛡️</div><div class="powerup-name">SHIELD</div><div class="powerup-text">Absorbs one hit. Visible as a glowing ring.</div></div>
+          <div class="powerup-card"><div class="powerup-icon" style="color:#ff00ff">🔫</div><div class="powerup-name">RAPID FIRE</div><div class="powerup-text">Halves fire delay for 8 seconds.</div></div>
+          <div class="powerup-card"><div class="powerup-icon" style="color:#ffd700">💥</div><div class="powerup-name">BOMB</div><div class="powerup-text">Destroys ALL enemies on screen instantly.</div></div>
+          <div class="powerup-card"><div class="powerup-icon" style="color:#ff3366">🚀</div><div class="powerup-name">HOMING</div><div class="powerup-text">Bullets auto-track the nearest enemy for 7s.</div></div>
+          <div class="powerup-card"><div class="powerup-icon" style="color:#fff">🤖</div><div class="powerup-name">DRONE</div><div class="powerup-text">Deploys a drone that auto-fires at enemies.</div></div>
+        </div>
+        <div class="guide-abilities">
+          <div class="guide-ability-card"><div class="powerup-icon" style="color:#00e5ff">⚡ EMP</div><div class="powerup-text"><b>SHIFT</b> — Releases an EMP wave that damages nearby enemies. Recharges over time.</div></div>
+          <div class="guide-ability-card"><div class="powerup-icon" style="color:#ff3e5e">🔥 BERSERKER</div><div class="powerup-text"><b>R KEY</b> — Doubles fire rate + boosts speed for 8 seconds. Needs a full gauge.</div></div>
+        </div>
+      </div>
+
+      <div class="guide-panel" id="tab-modes">
+        <div class="guide-card"><div class="guide-sector-badge" style="background:linear-gradient(135deg,#0a0518,#bf5fff)">NR</div><div class="guide-card-info"><div class="guide-card-title" style="color:#bf5fff">NEBULA REACH</div><div class="guide-card-desc">Levels 1–5. Starting sector. Standard enemies, no hazards. Learn the basics and build your score multiplier.</div><div class="guide-card-stats"><span class="stat-badge">🌀 No Hazards</span></div></div></div>
+        <div class="guide-card"><div class="guide-sector-badge" style="background:linear-gradient(135deg,#000814,#00e5ff)">CB</div><div class="guide-card-info"><div class="guide-card-title" style="color:#00e5ff">CRYSTAL BELT</div><div class="guide-card-desc">Levels 6–10. Rotating ice shards spawn from edges. Stay in the center lane to avoid them.</div><div class="guide-card-stats"><span class="stat-badge danger">❄️ Ice Shards</span></div></div></div>
+        <div class="guide-card"><div class="guide-sector-badge" style="background:linear-gradient(135deg,#0a0000,#ff4400)">MC</div><div class="guide-card-info"><div class="guide-card-title" style="color:#ff4400">MAGMA CORE</div><div class="guide-card-desc">Levels 11–15. Lava bursts erupt from below and deal damage. Creates chaos on crowded screens.</div><div class="guide-card-stats"><span class="stat-badge danger">🌋 Lava Bursts</span></div></div></div>
+        <div class="guide-card"><div class="guide-sector-badge" style="background:linear-gradient(135deg,#000,#444)">VE</div><div class="guide-card-info"><div class="guide-card-title" style="color:#aaa">VOID EDGE</div><div class="guide-card-desc">Levels 16+. Gravity wells warp trajectories and pull your ship. The ultimate challenge for elite pilots.</div><div class="guide-card-stats"><span class="stat-badge danger">🌀 Gravity Wells</span></div></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="crtOverlay"></div>
+  <input type="file" id="importFile" style="display:none" accept=".sav,.json" />
+  <script src="game.js"></script>
+</body>
+</html>
